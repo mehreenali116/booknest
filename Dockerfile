@@ -22,8 +22,7 @@ FROM nginx:stable-alpine
 # Copy built assets to nginx
 COPY --from=build /usr/src/app/dist /usr/share/nginx/html
 
-# Copy custom nginx config if needed for SPA routing
-# (Optional) Create a simple nginx config to handle SPA routing
+# Create a custom nginx configuration template
 RUN echo 'server { \
     listen 80; \
     location / { \
@@ -33,6 +32,5 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+# Use a script to replace the port at runtime and then start Nginx
+CMD ["/bin/sh", "-c", "sed -i \"s/listen 80;/listen ${PORT:-80};/\" /etc/nginx/conf.d/default.conf && nginx -g \"daemon off;\""]
